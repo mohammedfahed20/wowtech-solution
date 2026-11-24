@@ -15,6 +15,9 @@ const localizedLabels = [...document.querySelectorAll('[aria-label]')]
   .map(el => ({ el, original: el.getAttribute('aria-label') }));
 const localizedImages = [...document.querySelectorAll('img[data-alt-ar]')]
   .map(el => ({ el, english: el.alt, arabic: el.dataset.altAr }));
+const localizedPlaceholders = [...document.querySelectorAll('[data-placeholder-ar]')]
+  .map(el => ({ el, english: el.getAttribute('placeholder'), arabic: el.dataset.placeholderAr }));
+let heroSplit = null;
 const labelTranslations = {
   'WowTech Solution, back to top': 'WowTech Solution، العودة للأعلى',
   'WowTech Solution, back to home': 'WowTech Solution، العودة للرئيسية',
@@ -41,6 +44,10 @@ function menuLabel(open = false) {
 }
 
 function setLanguage(language) {
+  if (heroSplit) {
+    heroSplit.revert();
+    heroSplit = null;
+  }
   currentLanguage = language === 'ar' ? 'ar' : 'en';
   const isArabic = currentLanguage === 'ar';
   document.documentElement.lang = currentLanguage;
@@ -52,6 +59,10 @@ function setLanguage(language) {
     el.setAttribute('aria-label', isArabic ? (labelTranslations[original] || original) : original);
   });
   localizedImages.forEach(({ el, english, arabic }) => { el.alt = isArabic ? arabic : english; });
+  localizedPlaceholders.forEach(({ el, english, arabic }) => { el.setAttribute('placeholder', isArabic ? arabic : english); });
+  document.querySelectorAll('.hero-title-line').forEach(line => { line.textContent = line.dataset[isArabic ? 'ar' : 'en']; });
+  const formNote = document.querySelector('#form-note');
+  if (formNote?.dataset.state === 'whatsapp') formNote.textContent = isArabic ? 'سيتم فتح واتساب لإرسال تفاصيل مشروعك.' : 'WhatsApp will open with your project details.';
   document.title = isArabic ? (document.documentElement.dataset.titleAr || englishTitle) : englishTitle;
   if (description) description.content = isArabic
     ? (description.dataset.arContent || englishDescription)
@@ -72,7 +83,10 @@ function setLanguage(language) {
   try { localStorage.setItem('wow-language', currentLanguage); } catch { /* Storage may be unavailable. */ }
 }
 
-languageButtons.forEach(button => button.addEventListener('click', () => setLanguage(button.dataset.language)));
+languageButtons.forEach(button => button.addEventListener('click', () => {
+  setLanguage(button.dataset.language);
+  initHeroTitle();
+}));
 let savedLanguage;
 try { savedLanguage = localStorage.getItem('wow-language'); } catch { /* Storage may be unavailable. */ }
 setLanguage(savedLanguage || (navigator.language?.toLowerCase().startsWith('ar') ? 'ar' : 'en'));
@@ -105,7 +119,72 @@ if (year) year.textContent = new Date().getFullYear();
 
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const revealed = document.querySelectorAll('.reveal');
-if ('IntersectionObserver' in window && !reducedMotion.matches) {
+
+let lenis = null;
+if (window.Lenis) {
+  document.querySelectorAll('.benefits-grid,.clients-grid').forEach(element => element.setAttribute('data-lenis-prevent', ''));
+  const hasGsapTicker = Boolean(window.gsap && window.ScrollTrigger);
+  lenis = new Lenis({ anchors: true, autoRaf: !hasGsapTicker, respectReducedMotion: true });
+  document.documentElement.classList.add('lenis-active');
+  if (hasGsapTicker) {
+    gsap.registerPlugin(ScrollTrigger);
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add(time => lenis.raf(time * 1000));
+    gsap.ticker.lagSmoothing(0);
+  }
+}
+
+function initHeroTitle() {
+  if (heroSplit) {
+    heroSplit.revert();
+    heroSplit = null;
+  }
+  if (!window.gsap || !window.SplitText || reducedMotion.matches) return;
+  gsap.registerPlugin(SplitText);
+  heroSplit = SplitText.create('.hero-title-line', {
+    type: 'words',
+    aria: 'auto',
+    onSplit(self) {
+      return gsap.from(self.words, {
+        yPercent: 70,
+        autoAlpha: 0,
+        duration: 0.7,
+        ease: 'power3.out',
+        stagger: 0.055,
+        delay: 0.12
+      });
+    }
+  });
+}
+
+initHeroTitle();
+reducedMotion.addEventListener('change', event => {
+  if (!event.matches) return;
+  if (heroSplit) { heroSplit.revert(); heroSplit = null; }
+  if (window.gsap) gsap.killTweensOf(revealed);
+  window.ScrollTrigger?.getAll().forEach(trigger => trigger.kill());
+  revealed.forEach(element => element.classList.add('is-visible'));
+});
+
+if (window.gsap && window.ScrollTrigger && !reducedMotion.matches) {
+  gsap.registerPlugin(ScrollTrigger);
+  document.documentElement.classList.add('gsap-motion');
+  revealed.forEach((element, index) => {
+    gsap.fromTo(element,
+      { autoAlpha: 0, y: 18, filter: 'blur(2px)' },
+      {
+        autoAlpha: 1,
+        y: 0,
+        filter: 'blur(0px)',
+        duration: 0.68,
+        ease: 'power2.out',
+        delay: index % 4 * 0.055,
+        onComplete: () => element.classList.add('is-visible'),
+        scrollTrigger: { trigger: element, start: 'top 91%', once: true }
+      }
+    );
+  });
+} else if ('IntersectionObserver' in window && !reducedMotion.matches) {
   const observer = new IntersectionObserver(entries => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
@@ -133,6 +212,25 @@ if (hero && scene && !reducedMotion.matches) {
   hero.addEventListener('pointerleave', () => {
     scene.style.setProperty('--rx', '2deg');
     scene.style.setProperty('--ry', '-8deg');
+  });
+}
+
+const projectForm = document.querySelector('#project-form');
+if (projectForm) {
+  projectForm.addEventListener('submit', event => {
+    event.preventDefault();
+    if (!projectForm.reportValidity()) return;
+    const values = Object.fromEntries(new FormData(projectForm).entries());
+    const isArabic = currentLanguage === 'ar';
+    const message = isArabic
+      ? `مرحباً WowTech Solution، أود الحصول على استشارة مجانية حول مشروعي.\n\nالاسم: ${values.name}\nالبريد الإلكتروني: ${values.email}\nرقم الهاتف: ${values.phone}\nالخدمة المطلوبة: ${values.service}\nتفاصيل المشروع: ${values.details}`
+      : `Hello WowTech Solution, I would like a free consultation about my project.\n\nName: ${values.name}\nWork email: ${values.email}\nPhone: ${values.phone}\nService: ${values.service}\nProject details: ${values.details}`;
+    const note = document.querySelector('#form-note');
+    if (note) {
+      note.dataset.state = 'whatsapp';
+      note.textContent = isArabic ? 'سيتم فتح واتساب لإرسال تفاصيل مشروعك.' : 'WhatsApp will open with your project details.';
+    }
+    window.open(`https://wa.me/971521961007?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
   });
 }
 

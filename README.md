@@ -4,7 +4,7 @@ A bilingual (Arabic/English), responsive static website for WowTech Solution.
 
 ## 1. Project overview
 
-This project is a static website. It does **not** require Node.js, npm, a database, a build command, or a backend server.
+This project is a static website. It does **not** require Node.js, npm, a database, or a build command. A Dockerfile is included for deploying it through Coolify on a Hostinger VPS.
 
 Main pages:
 - `index.html` — homepage and main service sections.
@@ -19,6 +19,8 @@ Supporting files:
 - `client-logos/` — client logos.
 - `wow_it_tag_logo.png` — company logo.
 - `instagram.svg` — Instagram icon.
+- `Dockerfile` — serves the static website with Nginx for Coolify deployments.
+- `.dockerignore` — excludes Git metadata and documentation from the image.
 
 **Important:** Keep the folder structure and file names unchanged. The HTML pages load assets using relative paths.
 
@@ -77,6 +79,16 @@ For Netlify, Cloudflare Pages, or another static hosting provider:
 4. Add your custom domain in the hosting dashboard.
 5. Apply the DNS records shown by the provider and enable HTTPS.
 
+### Option C: Coolify on a Hostinger VPS
+
+1. Push the project folder to a GitHub repository.
+2. In Coolify, create an application resource and connect the GitHub repository.
+3. Select the Dockerfile build method. No build command is needed.
+4. Set the exposed/internal port to `80`, add your domain, and enable HTTPS.
+5. After deployment, verify both languages, the WhatsApp project form, phone links, and mobile layout.
+
+The project form opens WhatsApp with the visitor's details; it does not save enquiries on the server.
+
 ## 4. Pre-launch checklist
 
 - [ ] The homepage opens at the root domain.
@@ -107,8 +119,11 @@ Before publishing, confirm these details are still correct. To change the WhatsA
 
 ## 7. Important technical notes
 
+- The service section follows the four reference categories: IT Solutions, Business Technology Infrastructure, Websites, Apps & Software, and Brand & Digital Growth.
+
 - This is a front-end-only static website. It does not include a database, customer login, admin dashboard, server-side form processing, or an order-management system.
-- The contact actions currently direct visitors to WhatsApp or phone contact; they do not store enquiries on a server.
+- The contact form prepares a WhatsApp message with the visitor’s project details. Enquiries are not stored on the server.
+- GSAP, ScrollTrigger, SplitText, and Lenis load from a CDN for the headline, reveal animations, and smooth scrolling. Horizontal client/benefit carousels keep native scrolling. If the CDN is unavailable, the page stays usable and falls back to native scrolling and the existing reveal behavior.
 - The previous ChatGPT-hosted preview is separate from this source package. Publishing these files and connecting a domain must be completed through your hosting provider and domain DNS settings.
 
 ---
