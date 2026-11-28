@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://wowtech-solutions.com/sitemap.xml

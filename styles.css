@@ -23,9 +23,9 @@ button{font:inherit}
 .desktop-nav a{padding-block:12px;transition:color .2s}
 .desktop-nav a:hover{color:var(--green)}
 .language-switch{display:inline-flex;align-items:center;justify-content:center;gap:3px;direction:ltr;white-space:nowrap;border:1px solid #dce9e0;border-radius:100px;padding:3px;color:#9bb2a4;font-size:12px;font-weight:700}
-.language-switch button{border:0;border-radius:100px;background:transparent;color:#6c8575;padding:7px 9px;font-size:12px;font-weight:700;line-height:1;cursor:pointer;transition:background .2s,color .2s}
-.language-switch button[aria-pressed="true"]{background:#e7f5ec;color:var(--deep)}
-.language-switch button:hover{color:var(--green)}
+.language-switch a{display:inline-block;text-decoration:none;border:0;border-radius:100px;background:transparent;color:#6c8575;padding:7px 9px;font-size:12px;font-weight:700;line-height:1;cursor:pointer;transition:background .2s,color .2s}
+.language-switch a[aria-current="true"]{background:#e7f5ec;color:var(--deep)}
+.language-switch a:hover{color:var(--green)}
 .header-contact{display:inline-flex;align-items:center;gap:9px;background:var(--deep);color:#fff;border-radius:100px;padding:13px 17px 13px 21px;font-size:14px;font-weight:700;white-space:nowrap;transition:background .25s,transform .25s}
 .header-contact:hover{background:var(--green);transform:translateY(-2px)}
 .header-contact .icon{width:16px;height:16px}
@@ -222,7 +222,7 @@ h1 span{color:#b3edcc}
   .site-header .container{width:calc(100% - 36px)}
   .header-inner{gap:8px}
   .brand{gap:0}.brand-crop{scale:1;width:132px;height:28px;margin-right:0}.brand-crop img{width:198px;left:-16px;top:-30px}.brand-name{display:none}
-  .language-switch{padding:2px;gap:1px}.language-switch button{padding:7px 6px;font-size:11px}
+  .language-switch{padding:2px;gap:1px}.language-switch a{padding:7px 6px;font-size:11px}
   .hero{padding-top:7px}
   .hero-shell{border-radius:20px;min-height:0}
   .hero-copy{padding:44px 25px 295px}

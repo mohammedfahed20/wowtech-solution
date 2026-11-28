@@ -1,95 +1,14 @@
 document.documentElement.classList.add('js');
 
-const arabic = window.WOW_AR_TRANSLATIONS || {};
-let currentLanguage = 'en';
-const localizedText = [];
-const textWalker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-while (textWalker.nextNode()) {
-  const node = textWalker.currentNode;
-  const english = node.nodeValue.trim();
-  const translation = node.parentElement?.dataset.ar || arabic[english];
-  if (english && translation) localizedText.push({ node, original: node.nodeValue, english, translation });
-}
-const localizedLabels = [...document.querySelectorAll('[aria-label]')]
-  .filter(el => !el.classList.contains('menu-toggle') && !el.classList.contains('language-switch'))
-  .map(el => ({ el, original: el.getAttribute('aria-label') }));
-const localizedImages = [...document.querySelectorAll('img[data-alt-ar]')]
-  .map(el => ({ el, english: el.alt, arabic: el.dataset.altAr }));
-const localizedPlaceholders = [...document.querySelectorAll('[data-placeholder-ar]')]
-  .map(el => ({ el, english: el.getAttribute('placeholder'), arabic: el.dataset.placeholderAr }));
+// Each language is its own crawlable page: English at "/", Arabic at "/ar/".
+// scripts/build.py generates the Arabic pages from the English ones.
+const currentLanguage = document.documentElement.lang === 'ar' ? 'ar' : 'en';
 let heroSplit = null;
-const labelTranslations = {
-  'WowTech Solution, back to top': 'WowTech Solution، العودة للأعلى',
-  'WowTech Solution, back to home': 'WowTech Solution، العودة للرئيسية',
-  'Chat with WowTech Solution on WhatsApp': 'تواصل مع WowTech Solution عبر واتساب',
-  'WowTech Solution on Instagram': 'حساب WowTech Solution على إنستغرام',
-  'Main navigation': 'التنقل الرئيسي',
-  'Mobile navigation': 'التنقل على الهاتف',
-  'Footer navigation': 'التنقل أسفل الصفحة',
-  'Connected technology systems visualization': 'تصوّر للأنظمة التقنية المترابطة',
-};
-const englishTitle = document.title;
-const description = document.querySelector('meta[name="description"]');
-const ogTitle = document.querySelector('meta[property="og:title"]');
-const ogDescription = document.querySelector('meta[property="og:description"]');
-const englishDescription = description?.content;
-const englishOgDescription = ogDescription?.content;
-const whatsappLinks = [...document.querySelectorAll('a[href^="https://wa.me/"]')]
-  .map(el => ({ el, original: el.href }));
-const languageButtons = [...document.querySelectorAll('[data-language]')];
 
 function menuLabel(open = false) {
   if (currentLanguage === 'ar') return open ? 'إغلاق القائمة' : 'فتح القائمة';
   return open ? 'Close menu' : 'Open menu';
 }
-
-function setLanguage(language) {
-  if (heroSplit) {
-    heroSplit.revert();
-    heroSplit = null;
-  }
-  currentLanguage = language === 'ar' ? 'ar' : 'en';
-  const isArabic = currentLanguage === 'ar';
-  document.documentElement.lang = currentLanguage;
-  document.documentElement.dir = isArabic ? 'rtl' : 'ltr';
-  localizedText.forEach(({ node, original, english, translation }) => {
-    node.nodeValue = isArabic ? original.replace(english, translation) : original;
-  });
-  localizedLabels.forEach(({ el, original }) => {
-    el.setAttribute('aria-label', isArabic ? (labelTranslations[original] || original) : original);
-  });
-  localizedImages.forEach(({ el, english, arabic }) => { el.alt = isArabic ? arabic : english; });
-  localizedPlaceholders.forEach(({ el, english, arabic }) => { el.setAttribute('placeholder', isArabic ? arabic : english); });
-  document.querySelectorAll('.hero-title-line').forEach(line => { line.textContent = line.dataset[isArabic ? 'ar' : 'en']; });
-  const formNote = document.querySelector('#form-note');
-  if (formNote?.dataset.state === 'whatsapp') formNote.textContent = isArabic ? 'سيتم فتح واتساب لإرسال تفاصيل مشروعك.' : 'WhatsApp will open with your project details.';
-  document.title = isArabic ? (document.documentElement.dataset.titleAr || englishTitle) : englishTitle;
-  if (description) description.content = isArabic
-    ? (description.dataset.arContent || englishDescription)
-    : englishDescription;
-  if (ogTitle) ogTitle.content = document.title;
-  if (ogDescription) ogDescription.content = isArabic
-    ? (ogDescription.dataset.arContent || englishOgDescription)
-    : englishOgDescription;
-  const arabicMessage = 'مرحباً WowTech Solution، أود الحصول على استشارة مجانية حول احتياجات شركتي التقنية.';
-  whatsappLinks.forEach(({ el, original }) => {
-    el.href = isArabic ? `https://wa.me/971521961007?text=${encodeURIComponent(arabicMessage)}` : original;
-  });
-  languageButtons.forEach(button => {
-    button.setAttribute('aria-pressed', String(button.dataset.language === currentLanguage));
-  });
-  const menu = document.querySelector('.menu-toggle');
-  if (menu) menu.setAttribute('aria-label', menuLabel(menu.getAttribute('aria-expanded') === 'true'));
-  try { localStorage.setItem('wow-language', currentLanguage); } catch { /* Storage may be unavailable. */ }
-}
-
-languageButtons.forEach(button => button.addEventListener('click', () => {
-  setLanguage(button.dataset.language);
-  initHeroTitle();
-}));
-let savedLanguage;
-try { savedLanguage = localStorage.getItem('wow-language'); } catch { /* Storage may be unavailable. */ }
-setLanguage(savedLanguage || (navigator.language?.toLowerCase().startsWith('ar') ? 'ar' : 'en'));
 
 const menuButton = document.querySelector('.menu-toggle');
 const mobileNav = document.querySelector('#mobile-nav');
